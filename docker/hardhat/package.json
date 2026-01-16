@@ -1,0 +1,12 @@
+{
+  "name": "nft-marketplace-hardhat",
+  "version": "1.0.0",
+  "description": "Hardhat environment for NFT Marketplace",
+  "main": "hardhat.config.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "@openzeppelin/contracts": "^5.2.0",
+    "hardhat": "^2.19.0"
+  }
+}

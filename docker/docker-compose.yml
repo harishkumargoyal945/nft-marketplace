@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  hardhat:
+    build: hardhat
+    ports:
+      - "8545:8545"
+    volumes:
+      - ./hardhat/contracts:/app/contracts
+      - ./hardhat/scripts:/app/scripts
+      - ./hardhat/hardhat.config.js:/app/hardhat.config.js
+      - ..:/repo
+    working_dir: /app
+    command: npx hardhat node --hostname 0.0.0.0
+
+  api:
+    build:
+      context: .. # Project root
+      dockerfile: Dockerfile
+    env_file:
+      - ../.env
+    ports:
+      - "8081:8081"
+    environment:
+      - RPC_URL=http://hardhat:8545
+      - CHAIN_ID=31337
+      - DATABASE_PATH=/app/data/marketplace.db
+      # Keys should be passed via .env file or environment variables in production
+      - OWNER_PRIVATE_KEY=${OWNER_PRIVATE_KEY}
+      - SELLER_PRIVATE_KEY=${SELLER_PRIVATE_KEY}
+      - BUYER_PRIVATE_KEY=${BUYER_PRIVATE_KEY}
+      - NFT_ADDRESS=${NFT_ADDRESS}
+      - MARKET_ADDRESS=${MARKET_ADDRESS}
+    volumes:
+      - nft_data:/app/data
+    depends_on:
+      - hardhat
+    restart: unless-stopped
+
+volumes:
+  nft_data:

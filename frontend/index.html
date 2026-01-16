@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NFT Marketplace - Mint, Buy, Sell & Burn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <div id="app">
+    <header>
+      <div class="logo">🚀 NFT Marketplace</div>
+      <div class="wallet-info">
+        <span id="user-wallet">Connecting...</span>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero / Launch Section -->
+      <section class="hero-section glass-panel">
+        <h2>🎨 Launch Your NFT</h2>
+        <p>Create and instantly list your NFT on the marketplace</p>
+        <form id="launch-form">
+          <div class="form-row">
+            <div class="input-group">
+              <label>Name</label>
+              <input type="text" id="coin-name" placeholder="e.g. Crypto Punk" required>
+            </div>
+            <div class="input-group">
+              <label>Ticker</label>
+              <input type="text" id="coin-ticker" placeholder="e.g. PUNK" required>
+            </div>
+          </div>
+          <div class="input-group">
+            <label>Description</label>
+            <input type="text" id="coin-desc" placeholder="Tell us about your NFT...">
+          </div>
+          <div class="input-group">
+            <label>Image URL</label>
+            <input type="text" id="coin-image" placeholder="https://..." required>
+          </div>
+          <button type="submit" class="btn-primary pill">🚀 Launch NFT</button>
+        </form>
+      </section>
+
+      <!-- View Tabs -->
+      <section class="view-tabs">
+        <button class="view-tab active" data-view="marketplace">🛒 Marketplace</button>
+        <button class="view-tab" data-view="my-nfts">🎨 My NFTs</button>
+      </section>
+
+      <!-- Feed Section -->
+      <section class="feed-section">
+        <div class="feed-header">
+          <h3>NFT Collection</h3>
+          <input type="text" id="search-coins" placeholder="🔍 Search NFTs...">
+        </div>
+        <div id="coin-grid" class="coin-grid">
+          <!-- NFTs will be injected here -->
+          <div class="loading">Loading NFTs...</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Trade Modal (Hidden by default) -->
+    <div id="trade-modal" class="modal hidden">
+      <div class="modal-content glass-panel">
+        <span class="close-modal">&times;</span>
+        <div class="trade-header">
+          <img id="modal-img" src="" alt="NFT">
+          <div>
+            <h2 id="modal-name">NFT Name</h2>
+            <div id="modal-ticker" class="badge">TICKER</div>
+          </div>
+        </div>
+        <div class="chart-box">
+          <div class="bonding-curve-placeholder">
+            📈 Market Statistics
+          </div>
+          <div class="market-stats">
+            <div class="stat">
+              <label>Market Cap</label>
+              <span id="modal-mc">0 ETH</span>
+            </div>
+            <div class="stat">
+              <label>Created By</label>
+              <span id="modal-creator">0x...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="trade-actions">
+          <div class="tabs">
+            <button class="tab-btn active" data-action="buy">Buy</button>
+            <button class="tab-btn" data-action="sell">Sell</button>
+          </div>
+          <form id="trade-form">
+            <input type="hidden" id="modal-token-id">
+            <div class="input-group">
+              <label>Amount (ETH)</label>
+              <input type="number" id="trade-amount" step="0.0001" placeholder="0.0" required>
+            </div>
+            <button type="submit" id="trade-btn" class="btn-success full-width">Place Trade</button>
+          </form>
+          <div id="trade-result" class="result-box hidden"></div>
+        </div>
+
+        <div class="desc-box">
+          <h4>Description</h4>
+          <p id="modal-desc">...</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <script type="module" src="/main.js"></script>
+</body>
+
+</html>
