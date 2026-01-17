@@ -55,6 +55,22 @@ func (r *Repository) ListCollections() ([]core.Collection, error) {
 	return collections, nil
 }
 
+func (r *Repository) FindCollectionByOwner(ownerID uint) (*core.Collection, error) {
+	var collection core.Collection
+	if err := r.db.Where("creator_user_id = ?", ownerID).First(&collection).Error; err != nil {
+		return nil, err
+	}
+	return &collection, nil
+}
+
+func (r *Repository) FindCollectionByName(ownerID uint, name string) (*core.Collection, error) {
+	var collection core.Collection
+	if err := r.db.Where("creator_user_id = ? AND name = ?", ownerID, name).First(&collection).Error; err != nil {
+		return nil, err
+	}
+	return &collection, nil
+}
+
 // NFT methods
 func (r *Repository) CreateNFT(nft *core.NFT) error {
 	return r.db.Create(nft).Error

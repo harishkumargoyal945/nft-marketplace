@@ -1,68 +1,81 @@
 package db
 
 import (
-    "database/sql"
-    "fmt"
-    "time"
+	"database/sql"
+	"fmt"
+	"path/filepath"
 
-    "github.com/sirupsen/logrus"
-    "github.com/user/nft-marketplace/internal/config"
-    "github.com/user/nft-marketplace/internal/core"
+	"time"
 
-    _ "github.com/jackc/pgx/v5/stdlib"
-    "gorm.io/driver/postgres"
-    "gorm.io/gorm"
-    "gorm.io/gorm/logger"
-    "gorm.io/gorm/schema"
+	_ "github.com/lib/pq"
+	"github.com/user/nft-marketplace/internal/config"
+
+	"github.com/sirupsen/logrus"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
+	"github.com/user/nft-marketplace/internal/core"
 )
 
+func autoMigrate(db *gorm.DB, models ...interface{}) {
+	for _, m := range models {
+		if err := db.AutoMigrate(m); err != nil {
+			logrus.Fatalf("Failed to migrate %T: %v", m, err)
+		}
+	}
+}
+
 func InitDB(cfg *config.DBConfig) *gorm.DB {
-    sqlDB := setupDB(cfg)
+	sqlDB := setupDB(cfg)
 
-    gormDB, err := gorm.Open(postgres.New(postgres.Config{
-        Conn: sqlDB,
-    }), &gorm.Config{
-        Logger: logger.Default.LogMode(logger.Info),
-        NamingStrategy: schema.NamingStrategy{
-            SingularTable: true,
-        },
-    })
-    if err != nil {
-        logrus.Fatalf("Failed to open GORM DB: %v", err)
-    }
+	gormDB, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: sqlDB,
+	}), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true,
+		},
+	})
+	if err != nil {
+		logrus.Fatalf("Failed to open GORM DB: %v", err)
+	}
 
-    err = gormDB.AutoMigrate(
-        &core.User{},
-        &core.Collection{},
-        &core.NFT{},
-        &core.Listing{},
-        &core.Order{},
-    )
-    if err != nil {
-        logrus.Fatalf("Failed to run auto-migrations: %v", err)
-    }
+	if err := gormDB.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error; err != nil {
+		logrus.Fatalf("Failed to enable uuid-ossp extension: %v", err)
+	}
 
-    if cfg.AppEnv == "debug" {
-        gormDB = gormDB.Debug()
-        logrus.Info("GORM debug mode enabled")
-    }
-    return gormDB
+	autoMigrate(
+		gormDB, &core.User{}, &core.Collection{}, &core.NFT{}, &core.Listing{}, &core.Order{},
+	)
+
+	if cfg.AppEnv == "debug" {
+		gormDB = gormDB.Debug()
+		logrus.Info("GORM debug mode enabled")
+	}
+
+	return gormDB
 }
 
 func setupDB(cfg *config.DBConfig) *sql.DB {
-    dataSourceName := fmt.Sprintf(
-        "host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-        cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SslMode,
-    )
+	dataSourceName := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.Name, cfg.SslMode,
+	)
 
-    db, err := sql.Open("pgx", dataSourceName)
-    if err != nil {
-        logrus.Fatalf("Failed to connect to DB: %v", err)
-    }
+	if cfg.SslMode != "disable" {
+		authPemPath := filepath.Join(".", "config", "auth.pem")
+		dataSourceName += fmt.Sprintf(" sslrootcert=%s", authPemPath)
+	}
 
-    db.SetMaxOpenConns(cfg.DBMaxOpenConns)
-    db.SetMaxIdleConns(cfg.DBMaxIdleConns)
-    db.SetConnMaxLifetime(time.Duration(cfg.DBConnMaxLife) * time.Second)
+	db, err := sql.Open("postgres", dataSourceName)
+	if err != nil {
+		logrus.Fatalf("Failed to connect to DB: %v", err)
+	}
 
-    return db
+	db.SetMaxOpenConns(cfg.DBMaxOpenConns)
+	db.SetMaxIdleConns(cfg.DBMaxIdleConns)
+	db.SetConnMaxLifetime(time.Duration(cfg.DBConnMaxLife) * time.Second)
+
+	return db
 }

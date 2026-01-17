@@ -17,7 +17,12 @@
     <header>
       <div class="logo">🚀 NFT Marketplace</div>
       <div class="wallet-info">
-        <span id="user-wallet">Connecting...</span>
+        <select id="user-selector" class="user-select">
+          <option value="owner">Seller (Owner)</option>
+          <option value="buyer1">Buyer 1</option>
+          <option value="buyer2">Buyer 2</option>
+        </select>
+        <span id="user-wallet" style="margin-left: 10px; font-size: 0.9em;">...</span>
       </div>
     </header>
 
@@ -36,6 +41,10 @@
               <label>Ticker</label>
               <input type="text" id="coin-ticker" placeholder="e.g. PUNK" required>
             </div>
+          </div>
+          <div class="input-group">
+            <label>Collection Name</label>
+            <input type="text" id="coin-collection" placeholder="e.g. Punk Collection (Optional)">
           </div>
           <div class="input-group">
             <label>Description</label>

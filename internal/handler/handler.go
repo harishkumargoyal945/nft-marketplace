@@ -127,11 +127,12 @@ func (h *Handler) ListNFTs(c *gin.Context) {
 // Listing Handlers
 func (h *Handler) MintNFT(c *gin.Context) {
 	var req struct {
-		OwnerID  uint   `json:"owner_id" binding:"required"`
-		Name     string `json:"name" binding:"required"`
-		Symbol   string `json:"symbol" binding:"required"`
-		Desc     string `json:"description"`
-		ImageURL string `json:"image_url" binding:"required"`
+		OwnerID        uint   `json:"owner_id" binding:"required"`
+		Name           string `json:"name" binding:"required"`
+		Symbol         string `json:"symbol" binding:"required"`
+		Desc           string `json:"description"`
+		ImageURL       string `json:"image_url" binding:"required"`
+		CollectionName string `json:"collection_name"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -139,7 +140,7 @@ func (h *Handler) MintNFT(c *gin.Context) {
 		return
 	}
 
-	nft, err := h.service.MintNFT(req.OwnerID, req.Name, req.Symbol, req.Desc, req.ImageURL)
+	nft, err := h.service.MintNFT(req.OwnerID, req.Name, req.Symbol, req.Desc, req.ImageURL, req.CollectionName)
 	if err != nil {
 		log.Printf("MintNFT Error: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

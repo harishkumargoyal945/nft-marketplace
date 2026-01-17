@@ -1,9 +1,11 @@
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
+const { ethers } = hre;
 const fs = require("fs");
 const path = require("path");
 
 async function main() {
     console.log("Starting deployment...");
+    console.log("Network: ", hre);
     const [owner, seller, buyer] = await ethers.getSigners();
 
     console.log("--- DEPLOYING CONTRACTS ---");
@@ -22,7 +24,7 @@ async function main() {
 
     // Create .env content
     const envContent = `CHAIN_ID=1337
-RPC_URL=http://localhost:8545
+RPC_URL=http://localhost:8500
 NFT_ADDRESS=${nftAddress}
 MARKET_ADDRESS=${marketAddress}
 OWNER_PRIVATE_KEY=0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80

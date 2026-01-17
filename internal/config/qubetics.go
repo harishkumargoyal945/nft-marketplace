@@ -17,7 +17,7 @@ type EthConfig struct {
 func LoadEthConfig() *EthConfig {
 	chainID, _ := strconv.ParseInt(getEnv("CHAIN_ID", "1337"), 10, 64)
 	return &EthConfig{
-		RPCURL:          getEnv("RPC_URL", "http://localhost:8545"),
+		RPCURL:          getEnv("RPC_URL", "http://localhost:8500"),
 		NFTAddress:      getEnv("NFT_ADDRESS", ""),
 		MarketAddress:   getEnv("MARKET_ADDRESS", ""),
 		OwnerPrivateKey: getEnv("OWNER_PRIVATE_KEY", ""),

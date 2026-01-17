@@ -9,25 +9,50 @@ let currentView = 'marketplace'; // marketplace, my-nfts
 let currentUser = { id: 1, wallet_address: "0x..." }; // Mock user for demo
 
 // Init
+// Mock Users (matching .env keys for demo)
+const MOCK_USERS = {
+    owner: { wallet: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", name: "Reseller (Owner)" },
+    buyer1: { wallet: "0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d", name: "Alice (Buyer)" },
+    buyer2: { wallet: "0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a", name: "Bob (Buyer)" }
+};
+
+// Init
 async function init() {
+    // Initial load as Owner
+    await loginUser("owner");
+
+    // Load initial data
+    loadListings();
+    setupEventListeners();
+
+    // User Switcher Listener
+    const selector = $('user-selector');
+    if (selector) {
+        selector.addEventListener('change', async (e) => {
+            await loginUser(e.target.value);
+            // Refresh view
+            if (currentView === 'my-nfts') loadMyNFTs();
+            if (currentView === 'marketplace') loadListings();
+            showToast(`Switched to ${currentUser.name}`, 'info');
+        });
+    }
+}
+
+async function loginUser(userKey) {
     try {
-        // Try to get or create a mock user for demo
-        const userRes = await fetch(`${API_URL}/users`, {
+        const mock = MOCK_USERS[userKey];
+        const res = await fetch(`${API_URL}/users`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ wallet_address: "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80", name: "Demo User" })
+            body: JSON.stringify({ wallet_address: mock.wallet, name: mock.name })
         });
-        if (userRes.ok) {
-            currentUser = await userRes.json();
+        if (res.ok) {
+            currentUser = await res.json();
+            $('user-wallet').innerText = `🟢 ${currentUser.wallet_address.slice(0, 6)}...`;
         }
-
-        $('user-wallet').innerText = currentUser.wallet_address ? `🟢 ${currentUser.wallet_address.slice(0, 6)}...${currentUser.wallet_address.slice(-4)}` : 'Not Connected';
-
-        loadListings();
-        setupEventListeners();
     } catch (err) {
-        console.error(err);
-        $('user-wallet').innerText = '🔴 API Error';
+        console.error("Login failed", err);
+        $('user-wallet').innerText = '🔴 Login Error';
     }
 }
 
@@ -57,6 +82,7 @@ function setupEventListeners() {
             const symbol = $('coin-ticker').value;
             const desc = $('coin-desc').value;
             const image = $('coin-image').value;
+            const collectionName = $('coin-collection').value;
 
             const btn = e.target.querySelector('button');
             const originalText = btn.innerText;
@@ -72,7 +98,8 @@ function setupEventListeners() {
                         name: name,
                         symbol: symbol,
                         description: desc,
-                        image_url: image
+                        image_url: image,
+                        collection_name: collectionName
                     })
                 });
 

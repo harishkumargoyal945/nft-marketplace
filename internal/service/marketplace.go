@@ -54,10 +54,49 @@ func (s *MarketplaceService) ListCollections() ([]core.Collection, error) {
 	return s.repo.ListCollections()
 }
 
-func (s *MarketplaceService) MintNFT(ownerID uint, name, symbol, desc, imageURL string) (*core.NFT, error) {
+func (s *MarketplaceService) MintNFT(ownerID uint, name, symbol, desc, imageURL, collectionName string) (*core.NFT, error) {
 	user, err := s.repo.GetUserByID(ownerID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Find or Create Collection
+	var collection *core.Collection
+	if collectionName != "" {
+		collection, err = s.repo.FindCollectionByName(ownerID, collectionName)
+		if err != nil {
+			// Not found, create it
+			newCol := &core.Collection{
+				CreatorUserID: ownerID,
+				Name:          collectionName,
+				Symbol:        "NFT", // Default symbol, logic could be better
+			}
+			if err := s.repo.CreateCollection(newCol); err != nil {
+				return nil, fmt.Errorf("failed to auto-create collection: %w", err)
+			}
+			collection = newCol
+		}
+	} else {
+		// Use default if no name provided ? Or fail?
+		// User scenario implies we use name if given. If not given, we can fall back to "Default Collection" or fail.
+		// Let's fallback to finding *any* collection or "Default Collection" to be safe.
+		collection, err = s.repo.FindCollectionByOwner(ownerID)
+		if err != nil {
+			// Auto create default
+			defaultName := "Default Collection"
+			collection, err = s.repo.FindCollectionByName(ownerID, defaultName)
+			if err != nil {
+				newCol := &core.Collection{
+					CreatorUserID: ownerID,
+					Name:          defaultName,
+					Symbol:        "DEF",
+				}
+				if err := s.repo.CreateCollection(newCol); err != nil {
+					return nil, fmt.Errorf("failed to create default collection: %w", err)
+				}
+				collection = newCol
+			}
+		}
 	}
 
 	// 1. Mint on blockchain
@@ -72,6 +111,7 @@ func (s *MarketplaceService) MintNFT(ownerID uint, name, symbol, desc, imageURL 
 		TokenID:         tokenID,
 		ContractAddress: s.eth.GetNFTAddress(),
 		Chain:           "Qubetics",
+		CollectionID:    collection.ID,
 		OwnerUserID:     ownerID,
 		MetadataURL:     imageURL,
 	}

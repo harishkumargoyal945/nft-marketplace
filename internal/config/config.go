@@ -10,7 +10,6 @@ type Config struct {
     HTTP     *HTTPConfig
     Ethereum *EthConfig
     LogLevel string
-    DBDSN    string
 }
 
 func Load() *Config {
@@ -21,8 +20,6 @@ func Load() *Config {
         Ethereum: LoadEthConfig(),
         LogLevel: getEnv("LOG_LEVEL", "info"),
     }
-    // Generate DSN
-    cfg.DBDSN = cfg.DB.GetDSN()
     return cfg
 }
 
